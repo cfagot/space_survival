@@ -8,6 +8,7 @@ use crate::GameState;
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct GlobalRenderData {
     pub pos: [f32; 2],
+    pub screen_size: [f32; 2],
 }
 impl GlobalRenderData {
     pub fn setup(device: &Device) -> Buffer {
@@ -22,6 +23,12 @@ impl GlobalRenderData {
 
         device.create_buffer(&global_render_desc)
     }
+}
+
+pub trait Renderer {
+    fn prepare(&mut self,masonry_state: &mut MasonryState, game_state: &GameState, width: u32, height: u32);
+    fn render<'rpass>(&'rpass self, render_pass: &mut RenderPass<'rpass>, width: u32, height: u32);
+    fn finish_render(&mut self, masonry_state: &mut MasonryState, game_state: &GameState);
 }
 
 pub struct RenderManager {
@@ -78,7 +85,7 @@ impl RenderManager {
 
             // fill global buffer
             if let Some(global_buffer) = self.global_render_data_buffer.as_ref() {
-                let global_render_data = GlobalRenderData { pos: [cam_pos.x as f32, cam_pos.y as f32] };
+                let global_render_data = GlobalRenderData { pos: [cam_pos.x as f32, cam_pos.y as f32], screen_size: [width as f32, height as f32] };
                 queue.write_buffer(global_buffer, 0, bytemuck::cast_slice(&[global_render_data]));
             }    
         }
@@ -122,12 +129,12 @@ impl RenderManager {
             timestamp_writes: None,
             occlusion_query_set: None,
         });
-{
+
         for renderer in &self.renderers {
             renderer.render(&mut render_pass, width, height);
         }
-        drop(render_pass)
-    }
+        drop(render_pass);
+
         queue.submit(Some(encoder.finish()));
         surface_texture.present();
 
@@ -137,8 +144,3 @@ impl RenderManager {
     }
 }
 
-pub trait Renderer {
-    fn prepare(&mut self,masonry_state: &mut MasonryState, game_state: &GameState, width: u32, height: u32);
-    fn render<'rpass>(&'rpass self, render_pass: &mut RenderPass<'rpass>, width: u32, height: u32);
-    fn finish_render(&mut self, masonry_state: &mut MasonryState, game_state: &GameState);
-}

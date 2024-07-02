@@ -124,9 +124,10 @@ impl ApplicationHandler<accesskit_winit::Event> for AppInterface {
     
             self.render_mgr.render(&mut self.masonry_state, &self.game_state);
 
-            if let Some((device, _queue)) = self.masonry_state.get_render_device_and_queue() {
-                device.poll(vello::wgpu::Maintain::Wait);
-            }
+            // TODO: masonry calls poll here. Not clear why...
+//            if let Some((device, _queue)) = self.masonry_state.get_render_device_and_queue() {
+//                device.poll(vello::wgpu::Maintain::Wait);
+//            }
         }
     }
 }

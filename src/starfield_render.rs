@@ -66,9 +66,9 @@ impl StarfieldRenderer {
 
         // create the star instance data
         let seed = 2828;
-        let num_stars = 1000;
+        let num_stars = 4000;
         let size_range: Range<f64> = 10.0..20.0;
-        let dim_range: Range<f64> = -1000.0..1000.0;
+        let dim_range: Range<f64> = -2000.0..2000.0;
         let max_depth_ratio = 3.0;
         let mut instances: Vec<StarInstance> = Vec::with_capacity(num_stars);
         for i in 0..num_stars {
@@ -280,6 +280,7 @@ fn star_creator(_dist: f32, _size: f32, select: f32) -> [f32;3] {
 const STARFIELD_VERTEX_SHADER: &str = r#"
 struct GlobalRenderData {
     cam_pos: vec2<f32>,
+    screen_size: vec2<f32>,
 };
 
 @group(0) @binding(0) var<uniform> u_global: GlobalRenderData;
@@ -312,7 +313,7 @@ struct FragmentOutput {
 @vertex
 fn vs_main(vertex: VertexInput, instance: InstanceInput) -> VertexOutput {
     var local_pos = vec2<f32>(1.0, -1.0) * (instance.position - u_global.cam_pos)/instance.depth;
-    let window = 1000.0;
+    let window = 2000.0;
     let twice_window = 2.0 * window;
 
     // this is position of star center
@@ -320,12 +321,8 @@ fn vs_main(vertex: VertexInput, instance: InstanceInput) -> VertexOutput {
 
     // apply offsets (scaled by radius)
     local_pos += instance.radius/instance.depth * vertex.offset;
-//    local_pos += vertex.offset;
 
-//    var position = vec4<f32>(instance.position.x, instance.position.y, 0.1, 1.0);
-    var position = vec4<f32>(local_pos.x/600.0, local_pos.y/600.0, 0.1, 1.0);
-//var position = vec4<f32>(vertex.offset.x/10.0, vertex.offset.y/10.0, 0.1, 1.0);
-//    return VertexOutput(vec4<f32>(1.0,1.0,1.0,1.0), vertex.offset, position);
+    var position = vec4<f32>(2.0*local_pos.x/u_global.screen_size.x, 2.0*local_pos.y/u_global.screen_size.y, 0.1, 1.0);
     return VertexOutput(instance.color, vertex.offset, position);
 }
 
@@ -343,7 +340,5 @@ fn fs_main(in: VertexOutput) -> FragmentOutput {
     k2 *= k2;
     let k = k1*k2*clamp(1.0-dot(in.offset, in.offset), 0.0, 1.0);
     return FragmentOutput(k*mix(in.color, vec4<f32>(1.0,1.0,1.0, 1.0), k*k));
-//    return FragmentOutput(vec4<f32>(1.0,1.0,1.0, 1.0));
-//    return FragmentOutput(in.color*k*10.0);
 }
 "#;
