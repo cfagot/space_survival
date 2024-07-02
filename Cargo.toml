@@ -1,0 +1,24 @@
+[package]
+name = "space_survival"
+version = "0.1.0"
+description = "Simple game using xilem as app framework."
+edition = "2021"
+# rust-version = "1.77"
+# license = "Apache-2.0"
+# repository = "https://github.com/cfagot/space_survival"
+
+[dependencies]
+xilem = "0.1"
+masonry = "0.2"
+vello = "0.2"
+bytemuck = "1.16.1"
+accesskit_winit = "0.21.1"
+winit = "0.30.3"
+accesskit = "0.15.0"
+smallvec = "1.7.1"
+log = "0.4.14"
+
+[patch.crates-io]
+xilem = { path = "../xilem/xilem" }
+masonry = { path = "../xilem/masonry" }
+vello = { path = "../vello/vello" }
