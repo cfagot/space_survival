@@ -19,6 +19,8 @@ mod render_mgr;
 mod starfield_render;
 mod xilem_render;
 
+mod vello_ext;
+
 fn app_logic(data: &mut GameState) -> impl WidgetView<GameState> {
     GameView::new(data.clone())
 }
@@ -124,7 +126,7 @@ impl ApplicationHandler<accesskit_winit::Event> for AppInterface {
     
             self.render_mgr.render(&mut self.masonry_state, &self.game_state);
 
-            // TODO: masonry calls poll here. Not clear why...
+            // TODO: masonry calls poll here. Should we do the same?
 //            if let Some((device, _queue)) = self.masonry_state.get_render_device_and_queue() {
 //                device.poll(vello::wgpu::Maintain::Wait);
 //            }
