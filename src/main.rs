@@ -32,7 +32,7 @@ impl ApplicationHandler<accesskit_winit::Event> for AppInterface {
         self.masonry_state.handle_resumed(event_loop);
         event_loop.set_control_flow(winit::event_loop::ControlFlow::Poll);
         self.masonry_state
-            .set_present_mode(vello::wgpu::PresentMode::Immediate);
+            .set_present_mode(vello::wgpu::PresentMode::AutoNoVsync);
 
         let surface_format = if let WindowState::Rendering { surface, ..} = &self.masonry_state.get_window_state() {
             surface.format
