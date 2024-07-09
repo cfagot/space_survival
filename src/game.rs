@@ -599,6 +599,8 @@ impl GameWorld {
         // so this is most convenient
         self.render_ready =
             self.last_render.elapsed().as_micros() as u64 > MICROS_PER_SECOND / TARGET_FPS;
+        // HACK: turn off frame rate cap for now since it seems to cause backoff stragegy for some event loops.
+        self.render_ready = true;
         if self.render_ready {
             self.last_render = now;
         }
