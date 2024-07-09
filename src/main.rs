@@ -178,16 +178,15 @@ fn main() -> Result<(), EventLoopError> {
         .with_min_inner_size(window_size);
 
     let xilem = Xilem::new(game_state.clone(), app_logic);
-    let parts = xilem.split();
 
     let event_loop = xilem::EventLoop::with_user_event().build().unwrap();
     let masonry_state =
-        masonry::event_loop_runner::MasonryState::new(window_attributes, &event_loop, parts.root_widget);
+        masonry::event_loop_runner::MasonryState::new(window_attributes, &event_loop, xilem.root_widget);
 
     let mut app = AppInterface {
         render_mgr: RenderManager::new(),
         masonry_state,
-        app_driver: Box::new(parts.driver),
+        app_driver: Box::new(xilem.driver),
         game_state,
     };
     event_loop.run_app(&mut app)
