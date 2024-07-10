@@ -898,73 +898,6 @@ impl GameWorld {
         self.render_mini_map(scene, size, cam_pos);
         self.render_game_state(scene, ctx, size);
     }
-/*
-    pub fn setup_wgpu_renderers(&mut self, device: &Device, queue: &Queue, surface_format: TextureFormat) {
-        let global_buffer = GlobalRenderData::setup(device);
-        self.resources.starfield_renderer = Some(StarfieldRenderer::setup(device, queue, &global_buffer, surface_format));
-        self.resources.global_render_data_buffer = Some(global_buffer);
-    }
-
-    pub fn clear_wgpu_renderers(&mut self) {
-        self.resources.starfield_renderer = None;
-        self.resources.global_render_data_buffer = None;
-    }
-
-    pub fn render_wgpu<'a>(&self, device: &Device, queue: &Queue, surface_view: &TextureView) -> CommandEncoder {
-        // get camera position
-        let Some(control_obj) = self.get_control_object() else {
-            // if no control object, then no starfield
-            unreachable!();
-//            return;
-        };
-        let cam_pos = {
-            let control_obj = &self.entity_store.entities[control_obj.0];
-            control_obj.render_transform.translation()
-        };
-
-        // fill global buffer
-        if let Some(global_buffer) = self.resources.global_render_data_buffer.as_ref() {
-            let global_render_data = GlobalRenderData { pos: [cam_pos.x as f32, cam_pos.y as f32] };
-            queue.write_buffer(global_buffer, 0, bytemuck::cast_slice(&[global_render_data]));
-        }
-
-        let Some(starfield_renderer) = self.resources.starfield_renderer.as_ref() else {
-            // should always have starfield renderer, but avoid unwrapping
-            unreachable!();
-//            return;
-        };
-
-        // we only have one render manager, but could loop through different ones in the following logic
-        starfield_renderer.prepare(device, queue, cam_pos, self);
-
-        // create render pass
-        let mut encoder = device.create_command_encoder(&CommandEncoderDescriptor { label: Some("wgpu renderers") });
-//        let surface_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
-
-        let color_attachment = wgpu::RenderPassColorAttachment {
-            view: &surface_view,
-            ops: wgpu::Operations {
-                load: wgpu::LoadOp::Load,//Clear(wgpu::Color::BLACK),
-                store: wgpu::StoreOp::Store,
-            },
-            resolve_target: None,
-        };
-
-        {
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("wgpu render pass"),
-                color_attachments: &[Some(color_attachment)],
-                depth_stencil_attachment: None,
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
-
-            starfield_renderer.render(&mut render_pass);
-        }
-        encoder
-
-//        queue.submit(Some(encoder.finish()));
-    }*/
 }
 
 // --- MARK: GameObject ---
@@ -1592,8 +1525,6 @@ pub struct Resources {
     pub large_asteroid1: Shape,
     pub large_asteroid2: Shape,
     pub border_shape: Shape,
-//    pub starfield_renderer: Option<StarfieldRenderer>,
-//    pub global_render_data_buffer: Option<Buffer>,
 }
 
 impl Resources {
@@ -1607,8 +1538,6 @@ impl Resources {
             large_asteroid1: asteroid_shape(4, 150.0),
             large_asteroid2: asteroid_shape(5, 150.0),
             border_shape: border_shape(extent),
-//            starfield_renderer: None,
-//            global_render_data_buffer: None,
         }
     }
 }
