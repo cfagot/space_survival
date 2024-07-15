@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use accesskit::Role;
 use masonry::{
-    widget::{Widget, WidgetRef},
+    Widget, WidgetId,
     AccessCtx, AccessEvent, BoxConstraints, EventCtx, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx,
     PointerEvent, Size, StatusChange, TextEvent,
 };
@@ -43,7 +43,7 @@ impl Widget for GamePortal {
 
     fn accessibility(&mut self, _: &mut AccessCtx<'_>) {}
 
-    fn children(&self) -> SmallVec<[WidgetRef<'_, (dyn Widget + 'static)>; 16]> {
+    fn children_ids(&self) -> SmallVec<[WidgetId; 16]> {
         SmallVec::new()
     }
 }
