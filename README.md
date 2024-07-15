@@ -9,4 +9,4 @@ Currently there is no xilem gui on top of the game -- that is left for future de
 
 The game has no dependencies other than xilem (and xilem's own dependencies), and bytemuck (for wgpu rendering). This is done to show how xilem can be used as a bare-bones game framework out of the box. If one was to develop a larger game with xilem, crates such as hecs would be used instead of the not-really-an-ecs provided by the EntityStore here, and parry would be used for collisions and the spatial database rather than the simplified implementation found here.
 
-Finally, note that this game currently depends on changes from https://github.com/linebender/xilem/pull/417 and a couple other changes, all captured in the render_hooks branch of my fork of xilem. I'll update to base xilem when possible.
+Finally, note that this game currently depends the render_hooks branch of my fork of xilem. I'll update to base xilem when possible.
