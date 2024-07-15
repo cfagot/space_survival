@@ -231,15 +231,9 @@ impl GameWorld {
                 ctrl_obj.animation = None;
                 return;
             }
-            let left_down = self
-                .input_manager
-                .is_down(PhysicalKey::Code(KeyCode::ArrowLeft));
-            let right_down = self
-                .input_manager
-                .is_down(PhysicalKey::Code(KeyCode::ArrowRight));
-            let thrust_down = self
-                .input_manager
-                .is_down(PhysicalKey::Code(KeyCode::ArrowUp));
+            let left_down = self.input_manager.is_down(PhysicalKey::Code(KeyCode::ArrowLeft)) || self.input_manager.is_down(PhysicalKey::Code(KeyCode::KeyA));
+            let right_down = self.input_manager.is_down(PhysicalKey::Code(KeyCode::ArrowRight)) || self.input_manager.is_down(PhysicalKey::Code(KeyCode::KeyD));
+            let thrust_down = self.input_manager.is_down(PhysicalKey::Code(KeyCode::ArrowUp)) || self.input_manager.is_down(PhysicalKey::Code(KeyCode::KeyW));
             match (left_down, right_down) {
                 (true, false) => {
                     ctrl_obj.transform.apply_rotation(-0.15);

@@ -1,7 +1,7 @@
 
 # Space Survival
 
-You are in a shipe inside an asteroid field (which is boxed in for some reason). You are running out of air and need to race to pick up the air pod floating amongst the asteroids. Be quick because both your ship and the air pod will lose air over time. After picking up the air pod, a new one will appear some place else in the asteroid field and the race for survival continues. Controls are the arrow keys. Good luck!
+You are in a shipe inside an asteroid field (which is boxed in for some reason). You are running out of air and need to race to pick up the air pod floating amongst the asteroids. Be quick because both your ship and the air pod will lose air over time. After picking up the air pod, a new one will appear some place else in the asteroid field and the race for survival continues. Controls are the arrow keys or W-A-D. Good luck!
 
 Space survival is an example real-time game running inside xilem, rendering using both vello and wgpu. 
 
