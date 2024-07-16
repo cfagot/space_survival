@@ -1,6 +1,6 @@
 use accesskit::TreeUpdate;
-use masonry::{event_loop_runner::MasonryState, widget::RootWidget};
-use vello::wgpu::{BindGroup, BindGroupDescriptor, BindGroupEntry, BindingResource, BlendState, Buffer, Device, Queue, RenderPass, TextureFormat};
+use masonry::{event_loop_runner::{MasonryState, WindowState}, widget::RootWidget, Affine};
+use vello::{wgpu::{BindGroup, BindGroupDescriptor, BindGroupEntry, BindingResource, BlendState, Buffer, Device, Queue, RenderPass, TextureFormat}, Scene};
 
 use crate::{game_view::GamePortal, render_mgr::Renderer, vello_ext, GameState};
 
@@ -52,6 +52,14 @@ impl XilemRenderer {
 
 impl Renderer for XilemRenderer {
     fn prepare(&mut self, masonry_state: &mut MasonryState, _game_state: &GameState, width: u32, height: u32) {
+        let scale_factor = if let WindowState::Rendering { window, .. } = masonry_state.get_window_state() {
+            window.scale_factor()
+        }
+        else {
+            // should never get here when window state is not rendering
+            return;
+        };
+
         masonry_state.get_root().edit_root_widget(|mut root| {
             root.downcast::<RootWidget<GamePortal>>()
                 .get_element()
@@ -80,10 +88,18 @@ impl Renderer for XilemRenderer {
             antialiasing_method: vello::AaConfig::Area,
         };
 
-        // TODO: get surface scale and scale scene by it (see code in event_loop_runner as example)
+        // get surface scale and scale scene by it
+        let transformed_scene = if scale_factor == 1.0 {
+            None
+        } else {
+            let mut new_scene = Scene::new();
+            new_scene.append(&scene, Some(Affine::scale(scale_factor)));
+            Some(new_scene)
+        };
+        let scene_ref = transformed_scene.as_ref().unwrap_or(&scene);
 
         // Note: this performas a compute render pass. Might be worth holding onto the encoder and re-using for remaining passes
-        self.renderer.render_to_texture(device, queue, &scene, self.target_texture.as_ref().unwrap().get_view(), &render_params).unwrap();
+        self.renderer.render_to_texture(device, queue, scene_ref, self.target_texture.as_ref().unwrap().get_view(), &render_params).unwrap();
     }
 
     fn render<'rpass>(&'rpass self, render_pass: &mut RenderPass<'rpass>, _width: u32, _height: u32) {
