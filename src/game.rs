@@ -16,7 +16,7 @@ use masonry::{
 };
 use vello::Scene;
 use winit::{
-    event::{DeviceEvent, ElementState},
+    event::{DeviceEvent, ElementState, RawKeyEvent, WindowEvent},
     keyboard::{KeyCode, PhysicalKey},
 };
 
@@ -103,12 +103,18 @@ impl GameWorld {
         self.control_object = Some(id);
     }
 
-    pub fn handle_device_event(
-        &mut self,
-        _device_id: winit::event::DeviceId,
-        event: &winit::event::DeviceEvent,
-    ) {
+    pub fn handle_device_event(&mut self, event: &winit::event::DeviceEvent) {
         self.input_manager.input(event);
+    }
+
+    pub fn handle_window_key_event(&mut self, event: &winit::event::WindowEvent) {
+        if let WindowEvent::KeyboardInput { event, .. } = event {
+            // Convert the window key event to a device event
+            let raw_key = RawKeyEvent { physical_key: event.physical_key, state: event.state };
+            let device_event = DeviceEvent::Key(raw_key);
+
+            self.input_manager.input(&device_event);
+        }
     }
 
     fn add_object(

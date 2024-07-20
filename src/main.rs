@@ -4,6 +4,10 @@ use masonry::{app_driver::AppDriver, event_loop_runner::WindowState, widget::Roo
 use render_mgr::RenderManager;
 use starfield_render::StarfieldRenderer;
 use winit::{self, application::ApplicationHandler, error::EventLoopError};
+
+#[cfg(target_os = "linux")]
+use winit::platform::wayland::ActiveEventLoopExtWayland;
+
 use xilem::{WidgetView, Xilem};
 
 mod game_view;
@@ -69,14 +73,30 @@ impl ApplicationHandler<accesskit_winit::Event> for AppInterface {
         window_id: winit::window::WindowId,
         event: winit::event::WindowEvent,
     ) {
-        if event != winit::event::WindowEvent::RedrawRequested {
-            self.masonry_state.handle_window_event(
-                event_loop,
-                window_id,
-                event,
-                self.app_driver.as_mut(),
-            );
+        if event == winit::event::WindowEvent::RedrawRequested {
+            return;
         }
+
+        // wayland doesn't support keyboard device events so use window events instead
+        // Note: on x11 keyboard events have buffering issue with repeat keys, so can't need to
+        // use device events there. Also device events seem to arrive slightly earlier than window
+        // events so they are preferable.
+        #[cfg(target_os = "linux")]
+        if event_loop.is_wayland() {
+            if let winit::event::WindowEvent::KeyboardInput { .. } = &event{
+                self.game_state
+                .lock()
+                .unwrap()
+                .handle_window_key_event(&event);
+            }    
+        }
+
+        self.masonry_state.handle_window_event(
+            event_loop,
+            window_id,
+            event,
+            self.app_driver.as_mut(),
+        );
     }
 
     fn user_event(
@@ -87,16 +107,12 @@ impl ApplicationHandler<accesskit_winit::Event> for AppInterface {
         self.masonry_state.handle_user_event(event_loop, event, self.app_driver.as_mut());
     }
 
-    fn device_event(
-        &mut self,
-        _event_loop: &winit::event_loop::ActiveEventLoop,
-        device_id: winit::event::DeviceId,
-        event: winit::event::DeviceEvent,
+    fn device_event(&mut self, _event_loop: &winit::event_loop::ActiveEventLoop, _device_id: winit::event::DeviceId, event: winit::event::DeviceEvent,
     ) {
         self.game_state
             .lock()
             .unwrap()
-            .handle_device_event(device_id, &event);
+            .handle_device_event(&event);
     }
 
     fn about_to_wait(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
