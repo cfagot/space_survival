@@ -7,18 +7,14 @@ use std::{
     time::Instant,
 };
 
-use masonry::{
-    parley::{
-        self,
-        style::{FontFamily, FontStack, StyleProperty},
-    },
-    Affine, PaintCtx, Size, Vec2,
-};
-use vello::Scene;
+use masonry::core::PaintCtx;
+use parley::{Alignment, FontFamily, FontStack, StyleProperty};
+use vello::{kurbo::Size, Scene};
 use winit::{
     event::{DeviceEvent, ElementState, RawKeyEvent, WindowEvent},
     keyboard::{KeyCode, PhysicalKey},
 };
+use xilem::{Affine, Vec2};
 
 use crate::game_shapes::{
     air_pod_scene, air_pod_shape, asteroid_shape, border_shape, flame_scene, ship_shape,
@@ -659,63 +655,59 @@ impl GameWorld {
         );
         let txt = format!("{}\n{}", score, air);
 
-        let fill_color = xilem::Color::rgb8(0xff, 0xff, 0xff);
+        let fill_color = xilem::Color::from_rgb8(0xff, 0xff, 0xff);
 
         // To render text, we first create a LayoutBuilder and set the text properties.
-        let mut lcx = masonry::parley::LayoutContext::new();
+        let mut lcx = parley::LayoutContext::new();
         let mut text_layout_builder = lcx.ranged_builder(ctx.text_contexts().0, &txt, 1.0);
 
-        text_layout_builder.push_default(&StyleProperty::FontStack(FontStack::Single(
+        text_layout_builder.push_default(StyleProperty::FontStack(FontStack::Single(
             FontFamily::Generic(parley::style::GenericFamily::Serif),
         )));
-        text_layout_builder.push_default(&StyleProperty::FontSize(24.0));
-        text_layout_builder.push_default(&StyleProperty::Brush(
-            vello::peniko::Brush::Solid(fill_color).into(),
-        ));
+        text_layout_builder.push_default(StyleProperty::FontSize(24.0));
 
-        let mut text_layout = text_layout_builder.build();
-        text_layout.break_all_lines(None, xilem::TextAlignment::Start);
+        let mut text_layout = text_layout_builder.build(&txt);
+        text_layout.break_all_lines(None);
+        text_layout.align(None, Alignment::Start, false);
 
-        let mut scratch_scene = Scene::new();
         // We can pass a transform matrix to rotate the text we render
-        masonry::text_helpers::render_text(
+        masonry::core::render_text(
             scene,
-            &mut scratch_scene,
             Affine::translate(Vec2::new(margin, margin)),
             &text_layout,
+            &[vello::peniko::Brush::Solid(fill_color).into()],
+            true
         );
 
         if player.air_suuply.as_ref().map(|air| air.air).unwrap_or(0) == 0 {
             // Game Over
             let txt = "    GAME OVER\nYou are out of air!";
-            let fill_color = xilem::Color::rgb8(0xff, 0x00, 0x00);
+            let fill_color = xilem::Color::from_rgb8(0xff, 0x00, 0x00);
 
             let mut lcx = masonry::parley::LayoutContext::new();
             let mut text_layout_builder = lcx.ranged_builder(ctx.text_contexts().0, &txt, 1.0);
 
-            text_layout_builder.push_default(&StyleProperty::FontStack(FontStack::Single(
+            text_layout_builder.push_default(StyleProperty::FontStack(FontStack::Single(
                 FontFamily::Generic(parley::style::GenericFamily::Serif),
             )));
-            text_layout_builder.push_default(&StyleProperty::FontSize(48.0));
-            text_layout_builder.push_default(&StyleProperty::Brush(
-                vello::peniko::Brush::Solid(fill_color).into(),
-            ));
+            text_layout_builder.push_default(StyleProperty::FontSize(48.0));
 
-            let mut text_layout = text_layout_builder.build();
-            text_layout.break_all_lines(None, xilem::TextAlignment::Middle);
+            let mut text_layout = text_layout_builder.build(&txt);
+            text_layout.break_all_lines(None);
+            text_layout.align(None, Alignment::Middle, false);
             let w = text_layout.width();
             let h = text_layout.height();
 
-            let mut scratch_scene = Scene::new();
             // We can pass a transform matrix to rotate the text we render
-            masonry::text_helpers::render_text(
+            masonry::core::render_text(
                 scene,
-                &mut scratch_scene,
                 Affine::translate(Vec2::new(
                     0.5 * (size.width - w as f64),
                     0.5 * (size.height - h as f64),
                 )),
                 &text_layout,
+                &[vello::peniko::Brush::Solid(fill_color).into()],
+                true
             );
         }
     }
@@ -730,7 +722,7 @@ impl GameWorld {
         let map_scale = map_size / render_radius;
 
         // render mini-map in top right corner, with margin
-        let map_center = masonry::Point::new(size.width - map_radius - margin, map_radius + margin);
+        let map_center = vello::kurbo::Point::new(size.width - map_radius - margin, map_radius + margin);
         let world_to_map = Affine::translate(-cam_pos)
             .then_scale(map_scale)
             .then_translate(map_center.to_vec2());
@@ -745,7 +737,7 @@ impl GameWorld {
         scene.fill(
             vello::peniko::Fill::NonZero,
             Affine::IDENTITY,
-            xilem::Color::rgb8(0, 0, 0),
+            xilem::Color::from_rgb8(0, 0, 0),
             None,
             &vello::kurbo::Circle::new(map_center, map_radius),
         );
@@ -757,9 +749,9 @@ impl GameWorld {
 
         for entity in &self.entity_store.entities {
             let color = match entity.object_type {
-                GameObjectType::Ship => xilem::Color::rgb8(0xff, 0xff, 0xff),
-                GameObjectType::Asteroid => xilem::Color::rgb8(0x7f, 0x7f, 0x7f),
-                GameObjectType::AidPod => xilem::Color::rgb8(0x0, 0xb4, 0xd8),
+                GameObjectType::Ship => xilem::Color::from_rgb8(0xff, 0xff, 0xff),
+                GameObjectType::Asteroid => xilem::Color::from_rgb8(0x7f, 0x7f, 0x7f),
+                GameObjectType::AidPod => xilem::Color::from_rgb8(0x0, 0xb4, 0xd8),
                 GameObjectType::Dummy => unreachable!("Dummy object in render"),
             };
             let radius_scale = match entity.object_type {
@@ -816,7 +808,7 @@ impl GameWorld {
         scene.stroke(
             &vello::kurbo::Stroke::new(4.0),
             Affine::IDENTITY,
-            xilem::Color::rgb8(0xff, 0xff, 0xff),
+            xilem::Color::from_rgb8(0xff, 0xff, 0xff),
             None,
             &vello::kurbo::Circle::new(map_center, 0.5 * map_size),
         );
@@ -868,7 +860,7 @@ impl GameWorld {
                     scene.fill(
                         vello::peniko::Fill::NonZero,
                         Affine::translate(pos + half_size),
-                        xilem::Color::rgb8(0x0, 0xd4, 0xf8),
+                        xilem::Color::from_rgb8(0x0, 0xd4, 0xf8),
                         None,
                         &vello::kurbo::Circle::new((0.0, 0.0), 16.0 + oscillation * 48.0),
                     );

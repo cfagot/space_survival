@@ -1,15 +1,11 @@
 use std::sync::{Arc, Mutex};
 
 use accesskit::Role;
-use masonry::{
-    Widget, WidgetId,
-    AccessCtx, AccessEvent, BoxConstraints, EventCtx, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx,
-    PointerEvent, Size, StatusChange, TextEvent,
-};
+use masonry::core::{AccessCtx, AccessEvent, BoxConstraints, EventCtx, LayoutCtx, PaintCtx, PointerEvent, RegisterCtx, TextEvent, Widget, WidgetId};
 use smallvec::SmallVec;
 use vello::Scene;
 use xilem::{Pod, ViewCtx};
-use xilem::core::{MessageResult, DynMessage, Mut, View, ViewId};
+use xilem::core::{DynMessage, MessageResult, Mut, View, ViewId, ViewMarker};
 
 use crate::game::GameWorld;
 
@@ -24,11 +20,7 @@ impl Widget for GamePortal {
 
     fn on_access_event(&mut self, _: &mut EventCtx<'_>, _: &AccessEvent) {}
 
-    fn on_status_change(&mut self, _: &mut LifeCycleCtx<'_>, _: &StatusChange) {}
-
-    fn lifecycle(&mut self, _: &mut LifeCycleCtx<'_>, _: &LifeCycle) {}
-
-    fn layout(&mut self, _: &mut LayoutCtx, bc: &BoxConstraints) -> Size {
+    fn layout(&mut self, _: &mut LayoutCtx, bc: &BoxConstraints) -> vello::kurbo::Size {
         bc.max()
     }
 
@@ -41,16 +33,20 @@ impl Widget for GamePortal {
         Role::GenericContainer
     }
 
-    fn accessibility(&mut self, _: &mut AccessCtx<'_>) {}
-
     fn children_ids(&self) -> SmallVec<[WidgetId; 16]> {
         SmallVec::new()
     }
+
+    fn register_children(&mut self, _ctx: &mut RegisterCtx) {}
+
+    fn accessibility(&mut self, _ctx: &mut AccessCtx, _node: &mut accesskit::Node) {}
 }
 
 pub struct GameView {
     game_world: Arc<Mutex<GameWorld>>,
 }
+
+impl ViewMarker for GameView {}
 
 impl<State, Action> View<State, Action, ViewCtx> for GameView {
     type Element = Pod<GamePortal>;
@@ -63,19 +59,18 @@ impl<State, Action> View<State, Action, ViewCtx> for GameView {
         (Pod::new(widget), ())
     }
 
-    fn rebuild<'el>(
+    fn rebuild(
         &self,
         _prev: &Self,
-        (): &mut Self::ViewState,
+        _view_state: &mut Self::ViewState,
         _ctx: &mut ViewCtx,
-        element: Mut<'el, Self::Element>,
-    ) -> Mut<'el, Self::Element> {
-        element
+        _element: Mut<'_, Self::Element>,
+        ) {
     }
 
     fn teardown(
         &self,
-        (): &mut Self::ViewState,
+        _view_state: &mut Self::ViewState,
         ctx: &mut ViewCtx,
         element: Mut<'_, Self::Element>,
     ) {
@@ -97,7 +92,7 @@ impl<State, Action> View<State, Action, ViewCtx> for GameView {
         // but we haven't set up children yet, so shouldn't be empty either (should just not get here)
         unreachable!("message should not be sent to GameView without child.");
     }
-}
+    }
 
 impl GameView {
     pub fn new(game_world: Arc<Mutex<GameWorld>>) -> Self {

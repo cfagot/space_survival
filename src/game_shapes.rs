@@ -1,12 +1,11 @@
 use std::sync::Arc;
 
-use masonry::Affine;
 use vello::{
     kurbo::{self, Stroke},
-    peniko::Fill,
+    peniko::{Color, Fill},
     Scene,
 };
-use xilem::Color;
+use xilem::Affine;
 
 pub fn ship_shape() -> crate::game::Shape {
     let yrad: f64 = 25.0;
@@ -25,14 +24,14 @@ pub fn ship_shape() -> crate::game::Shape {
     scene.fill(
         Fill::NonZero,
         Affine::IDENTITY,
-        Color::rgb8(0xff, 0xff, 0xff),
+        Color::from_rgb8(0xff, 0xff, 0xff),
         None,
         &path,
     );
     scene.stroke(
         &Stroke::new(4.0),
         Affine::IDENTITY,
-        Color::rgb8(0xff, 0xff, 0xff),
+        Color::from_rgb8(0xff, 0xff, 0xff),
         None,
         &path,
     );
@@ -58,7 +57,7 @@ pub fn border_shape(extent: f64) -> crate::game::Shape {
     scene.stroke(
         &Stroke::new(border_width),
         Affine::IDENTITY,
-        Color::rgb8(0xff, 0x1f, 0x1f),
+        Color::from_rgb8(0xff, 0x1f, 0x1f),
         None,
         &path,
     );
@@ -87,14 +86,14 @@ fn line_loop_shape(line_loop: &[(f64, f64)], scale: f64) -> (Scene, f64) {
     scene.fill(
         Fill::NonZero,
         Affine::IDENTITY,
-        Color::rgb8(0x7f, 0x7f, 0x7f),
+        Color::from_rgb8(0x7f, 0x7f, 0x7f),
         None,
         &path,
     );
     scene.stroke(
         &Stroke::new(8.0),
         Affine::IDENTITY,
-        Color::rgb8(0x8f, 0x8f, 0x8f),
+        Color::from_rgb8(0x8f, 0x8f, 0x8f),
         None,
         &path,
     );
@@ -281,14 +280,14 @@ pub fn air_pod_scene(t: f64) -> Scene {
     scene.fill(
         Fill::NonZero,
         Affine::IDENTITY,
-        Color::rgb8(0x0, 0xb4, 0xd8),
+        Color::from_rgb8(0x0, 0xb4, 0xd8),
         None,
         &path,
     );
     scene.stroke(
         &Stroke::new(2.0),
         Affine::IDENTITY,
-        Color::rgb8(0xff, 0xff, 0xff),
+        Color::from_rgb8(0xff, 0xff, 0xff),
         None,
         &path,
     );
@@ -336,14 +335,14 @@ pub fn flame_scene(t: f64) -> Scene {
         scene.fill(
             Fill::NonZero,
             Affine::IDENTITY,
-            Color::rgb8(0xcf, 0x00, 0x00),
+            Color::from_rgb8(0xcf, 0x00, 0x00),
             None,
             &path,
         );
         scene.stroke(
             &Stroke::new(2.0),
             Affine::IDENTITY,
-            Color::rgb8(0xff, 0xa5, 0x00),
+            Color::from_rgb8(0xff, 0xa5, 0x00),
             None,
             &path,
         );

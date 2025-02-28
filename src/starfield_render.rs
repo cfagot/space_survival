@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 use bytemuck::{Pod, Zeroable};
-use masonry::event_loop_runner::MasonryState;
+use masonry::app::MasonryState;
 use vello::wgpu::{self, BindGroup, BlendState, Buffer, Device, Queue, RenderPass, RenderPipeline, TextureFormat};
 
 use crate::{game::HashRand, render_mgr::{GlobalRenderData, Renderer}, GameState};
@@ -126,7 +126,7 @@ impl StarfieldRenderer {
                     layout: Some(&pipeline_layout),
                     vertex: wgpu::VertexState {
                         module: &shader,
-                        entry_point: "vs_main",
+                        entry_point: Some("vs_main"),
                         buffers: &[
                             // vertex buffer
                             wgpu::VertexBufferLayout {
@@ -177,7 +177,7 @@ impl StarfieldRenderer {
                     },
                     fragment: Some(wgpu::FragmentState {
                         module: &shader,
-                        entry_point: "fs_main",
+                        entry_point: Some("fs_main"),
                         targets: &[Some(wgpu::ColorTargetState {
                             format: surface_format,
                             blend: Some(BlendState {
@@ -212,6 +212,7 @@ impl StarfieldRenderer {
                         alpha_to_coverage_enabled: false,
                     },
                     multiview: None,
+                    cache: None,
                 });
 
         Self {

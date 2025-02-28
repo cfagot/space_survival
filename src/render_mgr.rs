@@ -1,6 +1,7 @@
 use bytemuck::{Pod, Zeroable};
-use masonry::{event_loop_runner::{MasonryState, WindowState}, Vec2};
+use masonry::app::{MasonryState, WindowState};
 use vello::wgpu::{self, Buffer, Device, RenderPass};
+use xilem::Vec2;
 
 use crate::GameState;
 

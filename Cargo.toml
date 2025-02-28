@@ -9,13 +9,18 @@ repository = "https://github.com/cfagot/space_survival"
 [dependencies]
 xilem = { git = "https://github.com/cfagot/xilem", branch = "render_hooks" }
 masonry = { git = "https://github.com/cfagot/xilem", branch = "render_hooks" }
-vello = "0.2.0"
+vello = "0.4.0"
+parley = { git = "https://github.com/linebender/parley", rev = "d4bb51b0e684681bd07be95fe0e5ad20068a10a3" }
 bytemuck = "1.16.1"
-accesskit_winit = "0.21.1"
-winit = "0.30.3"
-accesskit = "0.15.0"
-smallvec = "1.7.1"
-log = "0.4.14"
+accesskit_winit = "0.23.1"
+winit = "0.30.4"
+accesskit = "0.17.1"
+smallvec = "1.14.0"
+log = "0.4.26"
+
+[patch."https://github.com/cfagot/xilem"]
+xilem = { path = "../xilem/xilem" }
+masonry = { path = "../xilem/masonry" }
 
 # [patch.crates-io]
 # xilem = { path = "../xilem/xilem" }

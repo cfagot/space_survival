@@ -1,11 +1,9 @@
 use accesskit::TreeUpdate;
-use masonry::{event_loop_runner::{MasonryState, WindowState}, widget::RootWidget, Affine};
-use vello::{wgpu::{BindGroup, BindGroupDescriptor, BindGroupEntry, BindingResource, BlendState, Buffer, Device, Queue, RenderPass, TextureFormat}, Scene};
+use masonry::{app::{MasonryState, WindowState}, widgets::RootWidget};
+use vello::{peniko::color::AlphaColor, wgpu::{BindGroup, BindGroupDescriptor, BindGroupEntry, BindingResource, BlendState, Buffer, Device, Queue, RenderPass, TextureFormat}, Scene};
+use xilem::Affine;
 
 use crate::{game_view::GamePortal, render_mgr::Renderer, vello_ext, GameState};
-
-
-
 
 pub struct XilemRenderer {
     tree_update: Option<TreeUpdate>,
@@ -61,10 +59,9 @@ impl Renderer for XilemRenderer {
         };
 
         masonry_state.get_root().edit_root_widget(|mut root| {
-            root.downcast::<RootWidget<GamePortal>>()
-                .get_element()
-                .ctx
-                .request_paint();
+            let mut game_portal = root.downcast::<RootWidget<GamePortal>>();
+            let mut game_portal = RootWidget::child_mut(&mut game_portal);
+            game_portal.ctx.request_paint_only();
         });
 
         let (scene, tree_update) = masonry_state.get_root().redraw();
@@ -82,7 +79,7 @@ impl Renderer for XilemRenderer {
         }
 
         let render_params = vello::RenderParams {
-            base_color: masonry::Color::BLACK.with_alpha_factor(0.0),
+            base_color: AlphaColor::new([0.0, 0.0, 0.0, 0.0]),
             width,
             height,
             antialiasing_method: vello::AaConfig::Area,
@@ -105,11 +102,8 @@ impl Renderer for XilemRenderer {
     fn render<'rpass>(&'rpass self, render_pass: &mut RenderPass<'rpass>, _width: u32, _height: u32) {
         if let Some(blit) = &self.blit {
             render_pass.set_pipeline(blit.get_pipeline());
-            render_pass.set_bind_group(0, &self.blit_bind_group.as_ref().unwrap(), &[]);
+            render_pass.set_bind_group(0, self.blit_bind_group.as_ref().unwrap(), &[]);
             render_pass.draw(0..6, 0..1);
-        }
-        else {
-            // TODO: just blit without AA
         }
     }
 

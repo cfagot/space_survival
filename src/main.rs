@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use masonry::{app_driver::AppDriver, event_loop_runner::WindowState, widget::RootWidget, Vec2};
+use masonry::{app::{AppDriver, MasonryUserEvent, WindowState}, widgets::RootWidget};
 use render_mgr::RenderManager;
 use starfield_render::StarfieldRenderer;
 use winit::{self, application::ApplicationHandler, error::EventLoopError};
@@ -8,7 +8,7 @@ use winit::{self, application::ApplicationHandler, error::EventLoopError};
 #[cfg(target_os = "linux")]
 use winit::platform::wayland::ActiveEventLoopExtWayland;
 
-use xilem::{WidgetView, Xilem};
+use xilem::{Color, MasonryProxy, WidgetView, Xilem};
 
 mod game_view;
 use game_view::{GamePortal, GameView};
@@ -31,7 +31,7 @@ fn app_logic(data: &mut GameState) -> impl WidgetView<GameState> {
 
 pub type GameState = Arc<Mutex<GameWorld>>;
 
-impl ApplicationHandler<accesskit_winit::Event> for AppInterface {
+impl ApplicationHandler<MasonryUserEvent> for AppInterface {
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
         self.masonry_state.handle_resumed(event_loop);
         event_loop.set_control_flow(winit::event_loop::ControlFlow::Poll);
@@ -102,7 +102,7 @@ impl ApplicationHandler<accesskit_winit::Event> for AppInterface {
     fn user_event(
         &mut self,
         event_loop: &winit::event_loop::ActiveEventLoop,
-        event: accesskit_winit::Event,
+        event: MasonryUserEvent,
     ) {
         self.masonry_state.handle_user_event(event_loop, event, self.app_driver.as_mut());
     }
@@ -134,10 +134,9 @@ impl ApplicationHandler<accesskit_winit::Event> for AppInterface {
             drop(game_state);
 
             self.masonry_state.get_root().edit_root_widget(|mut root| {
-                root.downcast::<RootWidget<GamePortal>>()
-                    .get_element()
-                    .ctx
-                    .request_paint();
+                let mut game_portal = root.downcast::<RootWidget<GamePortal>>();
+                let mut game_portal = RootWidget::child_mut(&mut game_portal);
+                game_portal.ctx.request_paint_only();
             });
     
             self.render_mgr.render(&mut self.masonry_state, &self.game_state);
@@ -160,7 +159,7 @@ fn create_game_world() -> GameWorld {
     let mut game_world = GameWorld::new(seed, 4000.0);
 
     // add the player ship at the origin
-    let world_center = Vec2::new(0.0, 0.0);
+    let world_center = xilem::Vec2::new(0.0, 0.0);
     let ship_id = game_world.add_ship(world_center..world_center);
     game_world.set_control_object(ship_id);
 
@@ -178,7 +177,7 @@ fn create_game_world() -> GameWorld {
 }
 
 pub struct AppInterface {
-    masonry_state: masonry::event_loop_runner::MasonryState<'static>,
+    masonry_state: masonry::app::MasonryState<'static>,
     app_driver: Box<dyn AppDriver>,
     game_state: GameState,
     render_mgr: RenderManager,
@@ -196,13 +195,16 @@ fn main() -> Result<(), EventLoopError> {
     let xilem = Xilem::new(game_state.clone(), app_logic);
 
     let event_loop = xilem::EventLoop::with_user_event().build().unwrap();
+    let proxy = MasonryProxy::new(event_loop.create_proxy());
+    let (widget, driver) = xilem.into_driver(Arc::new(proxy));
+
     let masonry_state =
-        masonry::event_loop_runner::MasonryState::new(window_attributes, &event_loop, xilem.root_widget);
+        masonry::app::MasonryState::new(window_attributes, &event_loop, widget, Color::BLACK);
 
     let mut app = AppInterface {
         render_mgr: RenderManager::new(),
         masonry_state,
-        app_driver: Box::new(xilem.driver),
+        app_driver: Box::new(driver),
         game_state,
     };
     event_loop.run_app(&mut app)
